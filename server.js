@@ -1,0 +1,124 @@
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+/// 1. MONGODB CONNECTION & SERVER START (Combined)
+const mongoURI = "mongodb+srv://chandangupta17102_db_user:DNfiZA3JtrV1D2Wi@cluster0.lsva5hs.mongodb.net/?appName=Cluster0"; // Apna asli link yahan daalein
+
+mongoose.connect(mongoURI)
+  .then(() => {
+    console.log("MongoDB connected successfully! 🎉");
+    
+    // Server tabhi start hoga jab DB connect ho jayega!
+    app.listen(3000, () => {
+        console.log('Backend Server is running on port 3000');
+    });
+  })
+  .catch(err => {
+    console.error("MongoDB connection error ❌:", err);
+  });
+// 2. USER SCHEMA & MODEL
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
+
+// 3. BOOKING SCHEMA & MODEL
+const bookingSchema = new mongoose.Schema({
+    instrument: { type: String, required: true },
+    title: { type: String, required: true },
+    start: { type: Date, required: true },
+    end: { type: Date, required: true },
+    userEmail: { type: String, required: true }
+});
+const Booking = mongoose.model('Booking', bookingSchema);
+
+// --- AUTH ROUTES ---
+app.post('/api/register', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: "Sabhi fields bharna zaroori hai!" });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Yeh email pehle se registered hai!" });
+        }
+
+        const newUser = new User({ name, email, password });
+        await newUser.save();
+        res.json({ message: "Registration successful! Ab aap login kar sakte hain." });
+    } catch (err) {
+        console.error("Register Error:", err);
+        res.status(500).json({ message: "Server Error: " + err.message });
+    }
+});
+
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email, password });
+        if (!user) {
+            return res.status(400).json({ message: "Galat Email ya Password!" });
+        }
+        res.json({ message: "Login successful!", user });
+    } catch (err) {
+        console.error("Login Error:", err);
+        res.status(500).json({ message: "Server Error: " + err.message });
+    }
+});
+
+// --- BOOKING ROUTES ---
+app.get('/api/bookings', async (req, res) => {
+    try {
+        const bookings = await Booking.find();
+        res.json(bookings);
+    } catch (err) {
+        res.status(500).json({ message: "Bookings laane mein error" });
+    }
+});
+
+app.post('/api/bookings', async (req, res) => {
+    try {
+        const { instrument, title, start, end, userEmail } = req.body;
+        const newStart = new Date(start);
+        const newEnd = new Date(end);
+
+        // Strict Overlap Check for the SAME instrument
+        const clash = await Booking.findOne({
+            instrument: instrument,
+            start: { $lt: newEnd },
+            end: { $gt: newStart }
+        });
+
+        if (clash) {
+            return res.status(400).json({ message: "Yeh slot is instrument ke liye already booked hai! Clash nahi ho sakta." });
+        }
+
+        // Database limit management (20 Lakh entries limit check)
+        const total = await Booking.countDocuments();
+        if (total >= 20000) {
+            await Booking.deleteMany({});
+            console.log("Database full ho gaya tha, purana data clean kar diya! 🧹");
+        }
+
+        const newBooking = new Booking({ instrument, title, start: newStart, end: newEnd, userEmail });
+        await newBooking.save();
+        
+        console.log("Nayi Booking Saved:", newBooking);
+        res.json({ message: "Booking successfully saved!" });
+    } catch (err) {
+        console.error("Booking Error:", err);
+        res.status(500).json({ message: "Booking save karne mein error", error: err.message });
+    }
+});
+
+app.get('/', (req, res) => res.send('Tandem Lab Backend Running & Healthy! 🎉'));
+app.listen(3000, () => console.log('Backend Server is running on port 3000'));
