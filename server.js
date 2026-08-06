@@ -6,21 +6,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/// 1. MONGODB CONNECTION & SERVER START (Combined)
-const mongoURI = "mongodb+srv://chandangupta17102_db_user:DNfiZA3JtrV1D2Wi@cluster0.lsva5hs.mongodb.net/?appName=Cluster0"; // Apna asli link yahan daalein
+// 1. MONGODB CONNECTION
+const mongoURI = "mongodb+srv://chandangupta17102_db_user:DNfiZA3JtrV1D2Wi@cluster0.lsva5hs.mongodb.net/?appName=Cluster0"; 
 
 mongoose.connect(mongoURI)
   .then(() => {
     console.log("MongoDB connected successfully! 🎉");
     
-    // Server tabhi start hoga jab DB connect ho jayega!
-    app.listen(3000, () => {
-        console.log('Backend Server is running on port 3000');
+    // NAYA UPDATE: process.env.PORT Render ke liye hai, aur 3000 aapke local PC ke liye
+    const PORT = process.env.PORT || 3000; 
+    
+    app.listen(PORT, () => {
+        console.log(`Backend Server is running on port ${PORT}`);
     });
   })
   .catch(err => {
     console.error("MongoDB connection error ❌:", err);
   });
+
 // 2. USER SCHEMA & MODEL
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -102,7 +105,7 @@ app.post('/api/bookings', async (req, res) => {
             return res.status(400).json({ message: "Yeh slot is instrument ke liye already booked hai! Clash nahi ho sakta." });
         }
 
-        // Database limit management (20 Lakh entries limit check)
+        // Database limit management
         const total = await Booking.countDocuments();
         if (total >= 20000) {
             await Booking.deleteMany({});
@@ -121,4 +124,3 @@ app.post('/api/bookings', async (req, res) => {
 });
 
 app.get('/', (req, res) => res.send('Tandem Lab Backend Running & Healthy! 🎉'));
-app.listen(3000, () => console.log('Backend Server is running on port 3000'));

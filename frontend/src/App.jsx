@@ -5,6 +5,9 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment.default || moment);
 
+// FINAL LIVE BACKEND URL
+const API_BASE_URL = "https://tandem-slot-booking.onrender.com";
+
 const instrumentsList = [
   "Solar Simulator",
   "Spin Coater",
@@ -16,7 +19,7 @@ const instrumentsList = [
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot'
+  const [authMode, setAuthMode] = useState('login'); 
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +35,7 @@ function App() {
   }, [isLoggedIn]);
 
   const fetchBookings = () => {
-    fetch('http://localhost:3000/api/bookings')
+    fetch(`${API_BASE_URL}/api/bookings`)
       .then(res => res.json())
       .then(data => {
         const formatted = data.map(b => ({
@@ -49,7 +52,7 @@ function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    fetch('http://localhost:3000/api/login', {
+    fetch(`${API_BASE_URL}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -66,7 +69,7 @@ function App() {
 
   const handleRegister = (e) => {
     e.preventDefault();
-    fetch('http://localhost:3000/api/register', {
+    fetch(`${API_BASE_URL}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
@@ -92,7 +95,7 @@ function App() {
       userEmail: currentUser.email
     };
 
-    fetch('http://localhost:3000/api/bookings', {
+    fetch(`${API_BASE_URL}/api/bookings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newBooking)
