@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // 1. MONGODB CONNECTION
-const mongoURI = "mongodb+srv://chandangupta17102_db_user:DNfiZA3JtrV1D2Wi@cluster0.lsva5hs.mongodb.net/?appName=Cluster0"; 
+const mongoURI = "mongodb+srv://chandangupta17102_db_user:DNfiZA3JtrV1D2Wi@cluster0.lsva5hs.mongodb.net/?appName=Cluster0";
 
 mongoose.connect(mongoURI)
   .then(() => {
@@ -117,6 +117,32 @@ app.post('/api/bookings', async (req, res) => {
     } catch (err) {
         console.error("Booking Error:", err);
         res.status(500).json({ message: "Booking save karne mein error", error: err.message });
+    }
+});
+
+// NAYA DELETE ROUTE YAHAN ADD KIYA GAYA HAI
+app.delete('/api/bookings', async (req, res) => {
+    try {
+        const { id, userEmail } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ message: "Booking ID is missing!" });
+        }
+
+        // Database se booking delete karna, sath mein authorization check
+        const deletedBooking = await Booking.findOneAndDelete({ 
+            _id: id, 
+            userEmail: userEmail 
+        });
+
+        if (!deletedBooking) {
+            return res.status(403).json({ message: "Booking nahi mili ya aap ise cancel karne ke liye authorized nahi hain." });
+        }
+
+        res.status(200).json({ message: "Booking cancelled successfully!" });
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        res.status(500).json({ message: "Server error during cancellation" });
     }
 });
 
