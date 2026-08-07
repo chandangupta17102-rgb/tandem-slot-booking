@@ -90,7 +90,7 @@ app.post('/api/login', async (req, res) => {
 
         // Email bhejne ka format
         const mailOptions = {
-            from: 'aapka-email@gmail.com', // YAHAN BHI APNA GMAIL ID DAALEIN
+            from: 'chandangupta17102@gmail.com', // YAHAN BHI APNA GMAIL ID DAALEIN
             to: email,
             subject: 'Your Login OTP - Tandem Lab Booking',
             text: `Hello ${user.name},\n\nYour 4-digit verification code for Tandem Lab Slot Booking is: ${otp}\n\nDo not share this code with anyone.\n\nThanks!`
