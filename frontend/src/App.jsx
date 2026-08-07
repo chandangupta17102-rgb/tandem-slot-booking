@@ -271,6 +271,8 @@ function App() {
             components={{ event: CustomEvent }}
             min={minTime}
             max={maxTime}
+            step={30}         /* 30 minute grid set kiya gaya hai */
+            timeslots={1}     /* Har timeslot ek hi step (30 min) ka hoga */
           />
         </div>
       </div>
