@@ -11,17 +11,17 @@ const API_BASE_URL = "https://tandem-slot-booking.onrender.com";
 // 1. Defined 3 Laboratory Categories with specific instruments
 const labData = {
   "Fabrication Laboratory": [
-    "Solar Simulator", "Spin Coater", "Thermal Evaporator", "Glove Box", "Sputtering System", 
-    "Atomic Layer Deposition (ALD)", "Plasma Cleaner", "Ozone Generator", "Tube Furnace", 
-    "Hot Plate", "Ultrasonic Bath", "UV-Vis Spectrophotometer", "Profilometer", 
-    "Chemical Vapor Deposition (CVD)", "E-beam Evaporator", "Mask Aligner", "Reactive Ion Etcher"
+    "Glove Box - 01", "Glove Box - 02", "Glove Box - 03", "Glove Box - 04", "Glove Box - 05", 
+    "Cluster Tool", "Inline cluster Tool", "Slot-die Coating", "Laser Scriber", 
+    "spray Pyrolysis", "Thickness Monitor Dektak", "Laminator and climate chamber", "Sputtering System", 
+    "Cluster Tool chamber 4 - Sputtering", "Atomic Layer Deposition (ALD)", "Closed Space Sublimation (CSS)"
   ],
   "Wet Laboratory": [
-    "Fume Hood", "Centrifuge", "Magnetic Stirrer", "pH Meter", "Weighing Balance"
+    "Laminar Air Flow (LAF)", "Plasma Asher", "Muffle Furnace", "Uv-Ozone cleaner", "Spin Coater", "Hot Plate", "Oven"
   ],
   "Characterisation Laboratory": [
-    "X-Ray Diffractometer (XRD)", "Scanning Electron Microscope (SEM)", "Atomic Force Microscope (AFM)", 
-    "Photoluminescence (PL) Spectrometer", "Fourier Transform Infrared (FTIR) Spectrometer", "External Quantum Efficiency (EQE) Setup"
+    "Uv-Vis Spectrophotometer", "Oriel Solar Simulator", "Enlitech Solar Simulator", 
+    "Enlitech EQE Measurement", "Four-Probe Measurement Setup"
   ]
 };
 
@@ -103,15 +103,16 @@ function App() {
   };
 
   const handleSelectSlot = (slotInfo) => {
+    // TIME VALIDATION (Min 30 min, Max 4 hours)
     const durationInMinutes = (slotInfo.end - slotInfo.start) / (1000 * 60);
     
     if (durationInMinutes < 30) {
-      alert("Minimum booking slot time is 30 minutes.");
+      alert("Minimum booking slot time is 30 minutes. Please select a larger time range.");
       return;
     }
     
-    if (durationInMinutes > 240) {
-      alert("Maximum booking slot time is 4 hours.");
+    if (durationInMinutes > 240) { // 4 hours = 240 minutes
+      alert("Maximum booking slot time is 4 hours. You cannot book an instrument for more than 4 hours at once.");
       return;
     }
 
@@ -182,15 +183,17 @@ function App() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#f4f7f6', display: 'flex', flexDirection: 'column' }}>
         <header style={{ backgroundColor: '#1e3a8a', color: 'white', padding: '15px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: '20px' }}>Tandem Solar Cell Lab Booking</h2>
+          <h2 style={{ margin: 0, fontSize: '26px', color: 'white' }}>Tandem Solar Cell Laboratory Slot Booking</h2>
           <div style={{ display: 'flex', gap: '20px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>
             <span onClick={() => setAuthMode('login')} style={{ borderBottom: authMode === 'login' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Login</span>
             <span onClick={() => setAuthMode('register')} style={{ borderBottom: authMode === 'register' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Register</span>
+            <span onClick={() => setAuthMode('forgot')} style={{ borderBottom: authMode === 'forgot' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Forgot Password</span>
           </div>
         </header>
 
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ background: 'white', padding: '30px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', width: '350px' }}>
+            
             {authMode === 'login' && (
               <form onSubmit={handleLogin}>
                 <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>User Login</h3>
@@ -209,6 +212,16 @@ function App() {
                 <button type="submit" style={btnStyle}>Register</button>
               </form>
             )}
+
+            {authMode === 'forgot' && (
+              <div>
+                <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>Reset Password</h3>
+                <p style={{ fontSize: '14px', color: '#666' }}>Enter your registered email:</p>
+                <input type="email" placeholder="Enter your email" style={inputStyle} />
+                <button onClick={() => alert("Password reset link sent to email!")} style={btnStyle}>Send Reset Link</button>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
@@ -218,7 +231,7 @@ function App() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #e5e7eb', paddingBottom: '15px', marginBottom: '20px' }}>
-        <h1 style={{ color: '#1e3a8a', margin: 0, fontSize: '24px' }}>Tandem Solar Cell Lab Booking</h1>
+        <h1 style={{ color: '#1e3a8a', margin: 0, fontSize: '28px' }}>Tandem Solar Cell Laboratory Slot Booking</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <span style={{ fontWeight: 'bold', color: '#374151' }}>Welcome, {currentUser.name}</span>
           <button onClick={() => setIsLoggedIn(false)} style={{ padding: '8px 15px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Logout</button>
@@ -231,7 +244,7 @@ function App() {
           <select 
             value={selectedLab} 
             onChange={handleLabChange}
-            style={{ padding: '8px 12px', fontSize: '16px', borderRadius: '5px', border: '1px solid #d1d5db', cursor: 'pointer' }}
+            style={{ padding: '8px 12px', fontSize: '16px', borderRadius: '5px', border: '1px solid #d1d5db', cursor: 'pointer', outline: 'none' }}
           >
             {Object.keys(labData).map(lab => (
               <option key={lab} value={lab}>{lab}</option>
@@ -244,7 +257,7 @@ function App() {
           <select 
             value={selectedInstrument} 
             onChange={(e) => setSelectedInstrument(e.target.value)}
-            style={{ padding: '8px 12px', fontSize: '16px', borderRadius: '5px', border: '1px solid #d1d5db', cursor: 'pointer' }}
+            style={{ padding: '8px 12px', fontSize: '16px', borderRadius: '5px', border: '1px solid #d1d5db', cursor: 'pointer', outline: 'none' }}
           >
             {labData[selectedLab].map(inst => (
               <option key={inst} value={inst}>{inst}</option>
@@ -256,7 +269,7 @@ function App() {
       <div style={{ background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
         <h3 style={{ marginTop: 0, color: '#374151' }}>Calendar for: <span style={{ color: '#2563eb' }}>{selectedInstrument}</span></h3>
         <p style={{ fontSize: '13px', color: '#6b7280' }}>
-          Select a slot to book. <strong>Right-Click on your booked slot to cancel it.</strong>
+          24-hour slots are available. Select a slot to book. <strong>Right-Click on your booked slot to cancel it.</strong> (Minimum: 30 mins, Maximum: 4 hours)
         </p>
         
         <div style={{ height: '70vh' }}>
@@ -271,8 +284,8 @@ function App() {
             components={{ event: CustomEvent }}
             min={minTime}
             max={maxTime}
-            step={30}         /* 30 minute grid set kiya gaya hai */
-            timeslots={1}     /* Har timeslot ek hi step (30 min) ka hoga */
+            step={30}         /* Added: 30 minute grid */
+            timeslots={1}     /* Added: Each timeslot is 30 mins */
           />
         </div>
       </div>
@@ -280,7 +293,26 @@ function App() {
   );
 }
 
-const inputStyle = { width: '100%', padding: '10px', margin: '10px 0', borderRadius: '5px', border: '1px solid #d1d5db', boxSizing: 'border-box' };
-const btnStyle = { width: '100%', padding: '10px', backgroundColor: '#939ab0', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', marginTop: '10px' };
+const inputStyle = { 
+  width: '100%', 
+  padding: '10px', 
+  margin: '10px 0', 
+  borderRadius: '5px', 
+  border: '1px solid #d1d5db', 
+  boxSizing: 'border-box' 
+};
+
+// Login Button Color Darkened to '#0a1930'
+const btnStyle = { 
+  width: '100%', 
+  padding: '10px', 
+  backgroundColor: '#0a1930', 
+  color: 'white', 
+  border: 'none', 
+  borderRadius: '5px', 
+  cursor: 'pointer', 
+  fontWeight: 'bold', 
+  marginTop: '10px' 
+};
 
 export default App;
