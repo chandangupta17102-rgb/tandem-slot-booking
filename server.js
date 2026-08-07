@@ -7,12 +7,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // --- EMAIL SETUP (NODEMAILER) ---
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true ka matlab hai hum secure rasta (port 465) use kar rahe hain
     auth: {
-        user: 'chandangupta17102@gmail.com', // YAHAN APNA GMAIL ID DAALEIN
-        pass: 'sjtghhlrfrcyxuvm'       // YAHAN APNA 16-DIGIT APP PASSWORD DAALEIN (Bina space ke)
+        user: 'chandangupta17102@gmail.com', // APNA ASLI GMAIL ID DAALEIN
+        pass: 'sjtghhlrfrcyxuvm'       // APNA 16-DIGIT APP PASSWORD DAALEIN
     }
 });
 
