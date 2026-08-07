@@ -266,7 +266,7 @@ const inputStyle = {
 const btnStyle = {
   width: '100%',
   padding: '10px',
-  backgroundColor: '#1e3a8a',
+  backgroundColor: '#5b6990',
   color: 'white',
   border: 'none',
   borderRadius: '5px',
