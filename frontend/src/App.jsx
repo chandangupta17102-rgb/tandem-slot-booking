@@ -12,8 +12,8 @@ const API_BASE_URL = "https://tandem-slot-booking.onrender.com";
 const labData = {
   "Fabrication Laboratory": [
     "Glove Box - 01", "Glove Box - 02", "Glove Box - 03", "Glove Box - 04", "Glove Box - 05", 
-    "Cluster Tool", "Inline cluster Tool", "Slot-die Coating", "Laser Scriber", 
-    "spray Pyrolysis", "Thickness Monitor Dektak", "Laminator and climate chamber", "Sputtering System", 
+    "Cluster Tool", "Inline Cluster Tool", "Slot-Die Coating", "Laser Scriber", 
+    "Spray Pyrolysis", "Thickness Monitor Dektak", "Laminator and Climate Chamber", "Sputtering System", 
     "Cluster Tool chamber 4 - Sputtering", "Atomic Layer Deposition (ALD)", "Closed Space Sublimation (CSS)"
   ],
   "Wet Laboratory": [
