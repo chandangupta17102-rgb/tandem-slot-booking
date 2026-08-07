@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer'); // 1. MODIFICATION: Email bhejne ke liye package
 
 const app = express();
 app.use(cors());
@@ -72,6 +73,42 @@ app.post('/api/login', async (req, res) => {
     } catch (err) {
         console.error("Login Error:", err);
         res.status(500).json({ message: "Server Error: " + err.message });
+    }
+});
+
+// 2. MODIFICATION: NAYA FORGOT PASSWORD ROUTE
+app.post('/api/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "Yeh email registered nahi hai!" });
+        }
+
+        // Email setup karne ka logic
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'chandangupta17102@gmail.com', // APNA ASLI GMAIL YAHAN DAALEIN
+                pass: 'sjtghhlrfrcyxuvm'     // APNA GMAIL APP PASSWORD YAHAN DAALEIN
+            }
+        });
+
+        const mailOptions = {
+            from: 'chandangupta17102@gmail.com', // APNA ASLI GMAIL YAHAN DAALEIN
+            to: user.email,
+            subject: 'Tandem Lab - Password Reset',
+            text: `Hello ${user.name},\n\nAapki password reset request aayi hai.\n\nAapka current password hai: ${user.password}\n\n(Future updates mein hum reset link daalenge)`
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ message: "Password reset details aapke email par bhej di gayi hain!" });
+
+    } catch (err) {
+        console.error("Forgot Password Error:", err);
+        res.status(500).json({ message: "Email bhejne mein error aaya", error: err.message });
     }
 });
 
