@@ -95,6 +95,24 @@ function App() {
     .catch(err => alert(err.message));
   };
 
+  // NAYA FUNCTION: Forgot Password Email bhejne ke liye
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    
+    fetch(`${API_BASE_URL}/api/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    })
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send reset email");
+      alert(data.message);
+      setAuthMode('login'); // Email bhejne ke baad wapas login form dikhaye
+    })
+    .catch(err => alert(err.message));
+  };
+
   // Jab lab change ho, toh us lab ka pehla instrument default select ho jaye
   const handleLabChange = (e) => {
     const newLab = e.target.value;
@@ -213,13 +231,21 @@ function App() {
               </form>
             )}
 
+            {/* FORGOT PASSWORD FORM KO UPDATE KIYA GAYA HAI */}
             {authMode === 'forgot' && (
-              <div>
+              <form onSubmit={handleForgotPassword}>
                 <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>Reset Password</h3>
                 <p style={{ fontSize: '14px', color: '#666' }}>Enter your registered email:</p>
-                <input type="email" placeholder="Enter your email" style={inputStyle} />
-                <button onClick={() => alert("Password reset link sent to email!")} style={btnStyle}>Send Reset Link</button>
-              </div>
+                <input 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  style={inputStyle} 
+                />
+                <button type="submit" style={btnStyle}>Send Reset Link</button>
+              </form>
             )}
 
           </div>
@@ -284,8 +310,8 @@ function App() {
             components={{ event: CustomEvent }}
             min={minTime}
             max={maxTime}
-            step={30}         /* Added: 30 minute grid */
-            timeslots={1}     /* Added: Each timeslot is 30 mins */
+            step={30} 
+            timeslots={1} 
           />
         </div>
       </div>
