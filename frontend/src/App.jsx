@@ -19,12 +19,11 @@ const instrumentsList = [
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot', 'otp'
+  const [authMode, setAuthMode] = useState('login'); 
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [otp, setOtp] = useState(''); // OTP State
 
   const [selectedInstrument, setSelectedInstrument] = useState(instrumentsList[0]);
   const [events, setEvents] = useState([]);
@@ -61,29 +60,9 @@ function App() {
     .then(async res => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
-      
-      // Jab login sahi ho, toh OTP wali screen dikhayein
-      setAuthMode('otp');
-      alert("A 4-digit OTP has been sent to your registered email ID.");
-    })
-    .catch(err => alert(err.message));
-  };
-
-  // Naya function: OTP Verify karne ke liye
-  const handleVerifyOtp = (e) => {
-    e.preventDefault();
-    fetch(`${API_BASE_URL}/api/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, otp })
-    })
-    .then(async res => {
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Invalid OTP");
-      
       setIsLoggedIn(true);
       setCurrentUser(data.user);
-      alert("Authentication Successful!");
+      alert("Login Successful!");
     })
     .catch(err => alert(err.message));
   };
@@ -156,7 +135,7 @@ function App() {
         <header style={{ backgroundColor: '#1e3a8a', color: 'white', padding: '15px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, fontSize: '20px' }}>Tandem Solar Cell Laboratory Slot Booking</h2>
           <div style={{ display: 'flex', gap: '20px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer' }}>
-            <span onClick={() => { setAuthMode('login'); setOtp(''); }} style={{ borderBottom: authMode === 'login' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Login</span>
+            <span onClick={() => setAuthMode('login')} style={{ borderBottom: authMode === 'login' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Login</span>
             <span onClick={() => setAuthMode('register')} style={{ borderBottom: authMode === 'register' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Register</span>
             <span onClick={() => setAuthMode('forgot')} style={{ borderBottom: authMode === 'forgot' ? '2px solid white' : 'none', paddingBottom: '2px' }}>Forgot Password</span>
           </div>
@@ -170,17 +149,7 @@ function App() {
                 <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>User Login</h3>
                 <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={inputStyle} />
                 <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required style={inputStyle} />
-                <button type="submit" style={btnStyle}>Proceed</button>
-              </form>
-            )}
-
-            {authMode === 'otp' && (
-              <form onSubmit={handleVerifyOtp}>
-                <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>Verify Authentication Code</h3>
-                <p style={{ fontSize: '12px', color: '#666', marginTop: '-5px' }}>Enter the 4-digit code sent to {email}</p>
-                <input type="text" maxLength="4" placeholder="Enter 4-digit OTP" value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} required style={{...inputStyle, textAlign: 'center', fontSize: '20px', letterSpacing: '5px'}} />
-                <button type="submit" style={btnStyle}>Verify & Login</button>
-                <button type="button" onClick={() => setAuthMode('login')} style={{...btnStyle, backgroundColor: 'transparent', color: '#1e3a8a', border: '1px solid #1e3a8a'}}>Back to Login</button>
+                <button type="submit" style={btnStyle}>Login</button>
               </form>
             )}
 
@@ -221,6 +190,7 @@ function App() {
 
       <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
         <strong style={{ color: '#4b5563', marginRight: '10px' }}>Select Instrument:</strong>
+        {/* DROPDOWN MENU */}
         <select 
           value={selectedInstrument} 
           onChange={(e) => setSelectedInstrument(e.target.value)}
@@ -266,7 +236,7 @@ const inputStyle = {
 const btnStyle = {
   width: '100%',
   padding: '10px',
-  backgroundColor: '#5b6990',
+  backgroundColor: '#1e3a8a',
   color: 'white',
   border: 'none',
   borderRadius: '5px',

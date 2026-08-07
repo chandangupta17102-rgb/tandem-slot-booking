@@ -1,28 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const nodemailer = require('nodemailer'); // EMAIL BHEJNE KE LIYE NAYA PACKAGE
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-// --- EMAIL SETUP (NODEMAILER) ---
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true ka matlab hai hum secure rasta (port 465) use kar rahe hain
-    auth: {
-        user: 'chandangupta17102@gmail.com', // APNA ASLI GMAIL ID DAALEIN
-        pass: 'sjtghhlrfrcyxuvm'       // APNA 16-DIGIT APP PASSWORD DAALEIN
-    }
-});
-
-// OTP save rakhne ke liye temporary memory
-const otpStore = {}; 
-
-// --- MONGODB CONNECTION ---
+// 1. MONGODB CONNECTION
 const mongoURI = "mongodb+srv://chandangupta17102_db_user:DNfiZA3JtrV1D2Wi@cluster0.lsva5hs.mongodb.net/?appName=Cluster0"; 
 
 mongoose.connect(mongoURI)
@@ -37,7 +21,7 @@ mongoose.connect(mongoURI)
     console.error("MongoDB connection error ❌:", err);
   });
 
-// --- MODELS ---
+// 2. USER SCHEMA & MODEL
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -45,6 +29,7 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
+// 3. BOOKING SCHEMA & MODEL
 const bookingSchema = new mongoose.Schema({
     instrument: { type: String, required: true },
     title: { type: String, required: true },
@@ -76,7 +61,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// LOGIN + OTP SENDING ROUTE
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -84,54 +68,9 @@ app.post('/api/login', async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: "Galat Email ya Password!" });
         }
-
-        // 4-Digit Random OTP Generate karein
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
-        
-        // OTP ko memory mein save karein
-        otpStore[email] = otp; 
-
-        // Email bhejne ka format
-        const mailOptions = {
-            from: 'chandangupta17102@gmail.com', // YAHAN BHI APNA GMAIL ID DAALEIN
-            to: email,
-            subject: 'Your Login OTP - Tandem Lab Booking',
-            text: `Hello ${user.name},\n\nYour 4-digit verification code for Tandem Lab Slot Booking is: ${otp}\n\nDo not share this code with anyone.\n\nThanks!`
-        };
-
-        // Email Bhejein
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error("Email bhejte waqt error:", error);
-                return res.status(500).json({ message: "OTP email bhejne mein fail ho gaya. Kripya dobara koshish karein." });
-            }
-            res.json({ message: "OTP sent successfully!" });
-        });
-        
+        res.json({ message: "Login successful!", user });
     } catch (err) {
         console.error("Login Error:", err);
-        res.status(500).json({ message: "Server Error: " + err.message });
-    }
-});
-
-// NAYA: OTP VERIFY ROUTE
-app.post('/api/verify-otp', async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-
-        // Check karein ki kya OTP sahi hai
-        if (otpStore[email] && otpStore[email] === otp) {
-            // OTP sahi hone par memory se hata dein
-            delete otpStore[email]; 
-            
-            // User ki details wapas laayein
-            const user = await User.findOne({ email }); 
-            res.json({ message: "Authentication successful!", user });
-        } else {
-            res.status(400).json({ message: "Invalid ya galat OTP!" });
-        }
-    } catch (err) {
-        console.error("OTP Verify Error:", err);
         res.status(500).json({ message: "Server Error: " + err.message });
     }
 });
@@ -152,6 +91,7 @@ app.post('/api/bookings', async (req, res) => {
         const newStart = new Date(start);
         const newEnd = new Date(end);
 
+        // Strict Overlap Check for the SAME instrument
         const clash = await Booking.findOne({
             instrument: instrument,
             start: { $lt: newEnd },
@@ -162,6 +102,7 @@ app.post('/api/bookings', async (req, res) => {
             return res.status(400).json({ message: "Yeh slot is instrument ke liye already booked hai! Clash nahi ho sakta." });
         }
 
+        // Database limit management
         const total = await Booking.countDocuments();
         if (total >= 20000) {
             await Booking.deleteMany({});
@@ -171,6 +112,7 @@ app.post('/api/bookings', async (req, res) => {
         const newBooking = new Booking({ instrument, title, start: newStart, end: newEnd, userEmail });
         await newBooking.save();
         
+        console.log("Nayi Booking Saved:", newBooking);
         res.json({ message: "Booking successfully saved!" });
     } catch (err) {
         console.error("Booking Error:", err);
@@ -178,4 +120,4 @@ app.post('/api/bookings', async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => res.send('Tandem Lab Backend Running & Healthy with OTP System! 🎉'));
+app.get('/', (req, res) => res.send('Tandem Lab Backend Running & Healthy! 🎉'));
