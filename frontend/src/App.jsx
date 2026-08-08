@@ -95,7 +95,7 @@ function App() {
     .catch(err => alert(err.message));
   };
 
-  // NAYA FUNCTION: Forgot Password Email bhejne ke liye
+  // NEW FUNCTION: Handle sending the forgot password email
   const handleForgotPassword = (e) => {
     e.preventDefault();
     
@@ -108,12 +108,12 @@ function App() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send reset email");
       alert(data.message);
-      setAuthMode('login'); // Email bhejne ke baad wapas login form dikhaye
+      setAuthMode('login'); // Redirect back to login form after sending email
     })
     .catch(err => alert(err.message));
   };
 
-  // Jab lab change ho, toh us lab ka pehla instrument default select ho jaye
+  // Set default instrument to the first one in the list when lab changes
   const handleLabChange = (e) => {
     const newLab = e.target.value;
     setSelectedLab(newLab);
@@ -231,7 +231,7 @@ function App() {
               </form>
             )}
 
-            {/* FORGOT PASSWORD FORM KO UPDATE KIYA GAYA HAI */}
+            {/* FORGOT PASSWORD FORM */}
             {authMode === 'forgot' && (
               <form onSubmit={handleForgotPassword}>
                 <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>Reset Password</h3>
@@ -310,8 +310,8 @@ function App() {
             components={{ event: CustomEvent }}
             min={minTime}
             max={maxTime}
-            step={30} 
-            timeslots={1} 
+            step={30}         /* Configured for 30-minute intervals */
+            timeslots={1}     /* Ensures each slot strictly represents 30 mins */
           />
         </div>
       </div>
@@ -328,7 +328,7 @@ const inputStyle = {
   boxSizing: 'border-box' 
 };
 
-// Login Button Color Darkened to '#0a1930'
+// Login Button customized to dark slate blue
 const btnStyle = { 
   width: '100%', 
   padding: '10px', 

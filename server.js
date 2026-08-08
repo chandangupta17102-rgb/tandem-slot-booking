@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const nodemailer = require('nodemailer'); // Email bhejne ke liye package
+const nodemailer = require('nodemailer'); // Package required for sending emails
 
 const app = express();
 app.use(cors());
@@ -45,17 +45,17 @@ app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
         if (!name || !email || !password) {
-            return res.status(400).json({ message: "Sabhi fields bharna zaroori hai!" });
+            return res.status(400).json({ message: "All fields are required!" });
         }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: "Yeh email pehle se registered hai!" });
+            return res.status(400).json({ message: "This email is already registered!" });
         }
 
         const newUser = new User({ name, email, password });
         await newUser.save();
-        res.json({ message: "Registration successful! Ab aap login kar sakte hain." });
+        res.json({ message: "Registration successful! You can now log in." });
     } catch (err) {
         console.error("Register Error:", err);
         res.status(500).json({ message: "Server Error: " + err.message });
@@ -67,7 +67,7 @@ app.post('/api/login', async (req, res) => {
         const { email, password } = req.body;
         const user = await User.findOne({ email, password });
         if (!user) {
-            return res.status(400).json({ message: "Galat Email ya Password!" });
+            return res.status(400).json({ message: "Invalid Email or Password!" });
         }
         res.json({ message: "Login successful!", user });
     } catch (err) {
@@ -81,34 +81,35 @@ app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
         
-        // Check if user exists
+        // Verify if the user exists in the database
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: "Yeh email registered nahi hai!" });
+            return res.status(404).json({ message: "This email is not registered!" });
         }
 
-        // NAYA EMAIL SETUP LOGIC
+        // Configure Nodemailer transporter with the system email and app password
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'tandem.booking.system@gmail.com', // NAYA SYSTEM GMAIL DAALA GAYA HAI
-                pass: 'rwdpwpcycnxgczkz'                 // NAYA APP PASSWORD DAALA GAYA HAI
+                user: 'tandem.booking.system@gmail.com', // System Email
+                pass: 'rwdpwpcycnxgczkz'                 // 16-digit App Password
             }
         });
 
+        // Set up email data and message content
         const mailOptions = {
-            from: 'tandem.booking.system@gmail.com', // NAYA SYSTEM GMAIL
+            from: 'tandem.booking.system@gmail.com', // Sender address
             to: user.email,
-            subject: 'Tandem Lab - Password Reset',
-            text: `Hello ${user.name},\n\nAapki password reset request aayi hai.\n\nAapka current password hai: ${user.password}\n\n(Future updates mein hum reset link daalenge)`
+            subject: 'Tandem Lab - Password Recovery',
+            text: `Hello ${user.name},\n\nWe received a password recovery request for your account.\n\nYour current login password is: ${user.password}\n\nPlease use this password to log into the system. For security reasons, do not share this email with anyone.\n\nRegards,\nTandem Lab Team`
         };
 
         await transporter.sendMail(mailOptions);
-        res.json({ message: "Password reset details aapke email par bhej di gayi hain!" });
+        res.json({ message: "Password recovery details have been sent to your email!" });
 
     } catch (err) {
         console.error("Forgot Password Error:", err);
-        res.status(500).json({ message: "Email bhejne mein error aaya", error: err.message });
+        res.status(500).json({ message: "Failed to send email", error: err.message });
     }
 });
 
@@ -118,7 +119,7 @@ app.get('/api/bookings', async (req, res) => {
         const bookings = await Booking.find();
         res.json(bookings);
     } catch (err) {
-        res.status(500).json({ message: "Bookings laane mein error" });
+        res.status(500).json({ message: "Error fetching bookings" });
     }
 });
 
@@ -128,7 +129,7 @@ app.post('/api/bookings', async (req, res) => {
         const newStart = new Date(start);
         const newEnd = new Date(end);
 
-        // Strict Overlap Check for the SAME instrument
+        // Strict Overlap Check for the selected instrument
         const clash = await Booking.findOne({
             instrument: instrument,
             start: { $lt: newEnd },
@@ -136,24 +137,24 @@ app.post('/api/bookings', async (req, res) => {
         });
 
         if (clash) {
-            return res.status(400).json({ message: "Yeh slot is instrument ke liye already booked hai! Clash nahi ho sakta." });
+            return res.status(400).json({ message: "This slot is already booked for this instrument! Overlaps are not allowed." });
         }
 
-        // Database limit management
+        // Database capacity management (prevents exceeding free tier limits)
         const total = await Booking.countDocuments();
         if (total >= 20000) {
             await Booking.deleteMany({});
-            console.log("Database full ho gaya tha, purana data clean kar diya! 🧹");
+            console.log("Database reached capacity limit. Cleared old records.");
         }
 
         const newBooking = new Booking({ instrument, title, start: newStart, end: newEnd, userEmail });
         await newBooking.save();
         
-        console.log("Nayi Booking Saved:", newBooking);
+        console.log("New Booking Saved:", newBooking);
         res.json({ message: "Booking successfully saved!" });
     } catch (err) {
         console.error("Booking Error:", err);
-        res.status(500).json({ message: "Booking save karne mein error", error: err.message });
+        res.status(500).json({ message: "Error saving booking", error: err.message });
     }
 });
 
@@ -166,14 +167,14 @@ app.delete('/api/bookings', async (req, res) => {
             return res.status(400).json({ message: "Booking ID is missing!" });
         }
 
-        // Database se booking delete karna, sath mein authorization check
+        // Delete booking from database while enforcing user authorization
         const deletedBooking = await Booking.findOneAndDelete({ 
             _id: id, 
             userEmail: userEmail 
         });
 
         if (!deletedBooking) {
-            return res.status(403).json({ message: "Booking nahi mili ya aap ise cancel karne ke liye authorized nahi hain." });
+            return res.status(403).json({ message: "Booking not found or you are not authorized to cancel it." });
         }
 
         res.status(200).json({ message: "Booking cancelled successfully!" });
