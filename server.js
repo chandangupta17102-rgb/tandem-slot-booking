@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const nodemailer = require('nodemailer'); // 1. MODIFICATION: Email bhejne ke liye package
+const nodemailer = require('nodemailer'); // Email bhejne ke liye package
 
 const app = express();
 app.use(cors());
@@ -76,7 +76,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 2. MODIFICATION: NAYA FORGOT PASSWORD ROUTE
+// FORGOT PASSWORD ROUTE
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
@@ -87,17 +87,17 @@ app.post('/api/forgot-password', async (req, res) => {
             return res.status(404).json({ message: "Yeh email registered nahi hai!" });
         }
 
-        // Email setup karne ka logic
+        // NAYA EMAIL SETUP LOGIC
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'chandangupta17102@gmail.com', // APNA ASLI GMAIL YAHAN DAALEIN
-                pass: 'sjtghhlrfrcyxuvm'     // APNA GMAIL APP PASSWORD YAHAN DAALEIN
+                user: 'tandem.booking.system@gmail.com', // NAYA SYSTEM GMAIL DAALA GAYA HAI
+                pass: 'rwdpwpcycnxgczkz'                 // NAYA APP PASSWORD DAALA GAYA HAI
             }
         });
 
         const mailOptions = {
-            from: 'chandangupta17102@gmail.com', // APNA ASLI GMAIL YAHAN DAALEIN
+            from: 'tandem.booking.system@gmail.com', // NAYA SYSTEM GMAIL
             to: user.email,
             subject: 'Tandem Lab - Password Reset',
             text: `Hello ${user.name},\n\nAapki password reset request aayi hai.\n\nAapka current password hai: ${user.password}\n\n(Future updates mein hum reset link daalenge)`
@@ -157,7 +157,7 @@ app.post('/api/bookings', async (req, res) => {
     }
 });
 
-// NAYA DELETE ROUTE YAHAN ADD KIYA GAYA HAI
+// DELETE ROUTE FOR CANCELLATION
 app.delete('/api/bookings', async (req, res) => {
     try {
         const { id, userEmail } = req.body;
