@@ -244,7 +244,7 @@ function App() {
                   required
                   style={inputStyle} 
                 />
-                <button type="submit" style={btnStyle}>Send Reset Link</button>
+                <button type="submit" style={btnStyle}>Send Password</button>
               </form>
             )}
 
