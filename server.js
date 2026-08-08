@@ -89,10 +89,12 @@ app.post('/api/forgot-password', async (req, res) => {
 
         // Configure Nodemailer transporter with the system email and app password
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // Port 465 ke liye secure true hona chahiye
             auth: {
-                user: 'tandem.booking.system@gmail.com', // System Email
-                pass: 'rwdpwpcycnxgczkz'                 // 16-digit App Password
+                user: 'tandem.booking.system@gmail.com', 
+                pass: 'rwdpwpcycnxgczkz'                 
             }
         });
 
