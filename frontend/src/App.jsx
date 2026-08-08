@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import emailjs from '@emailjs/browser';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -95,10 +96,11 @@ function App() {
     .catch(err => alert(err.message));
   };
 
-  // NEW FUNCTION: Handle sending the forgot password email
+  // Handle sending the existing password via EmailJS
   const handleForgotPassword = (e) => {
     e.preventDefault();
     
+    // 1. Fetch user details from backend to retrieve the existing password
     fetch(`${API_BASE_URL}/api/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,11 +108,28 @@ function App() {
     })
     .then(async res => {
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to send reset email");
-      alert(data.message);
+      if (!res.ok) throw new Error(data.message || "Email not registered");
+
+      // 2. Set up EmailJS variables using the existing password
+      const templateParams = {
+        user_name: data.user.name,
+        user_email: email,
+        user_password: data.user.password // Sending the current password, no reset done
+      };
+
+      // 3. Send email via EmailJS with your updated IDs
+      return emailjs.send(
+        'service_z33sz1s',      // Updated Service ID
+        'template_ttlyu29',     // Updated Template ID
+        templateParams,
+        'YMV2VRpuin0aMITwV'     // Updated Public Key
+      );
+    })
+    .then(() => {
+      alert("Your password has been sent to your email!");
       setAuthMode('login'); // Redirect back to login form after sending email
     })
-    .catch(err => alert(err.message));
+    .catch(err => alert(err.message || "Failed to send recovery email"));
   };
 
   // Set default instrument to the first one in the list when lab changes
@@ -129,7 +148,7 @@ function App() {
       return;
     }
     
-    if (durationInMinutes > 240) { // 4 hours = 240 minutes
+    if (durationInMinutes > 240) {
       alert("Maximum booking slot time is 4 hours. You cannot book an instrument for more than 4 hours at once.");
       return;
     }
@@ -234,7 +253,7 @@ function App() {
             {/* FORGOT PASSWORD FORM */}
             {authMode === 'forgot' && (
               <form onSubmit={handleForgotPassword}>
-                <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>Reset Password</h3>
+                <h3 style={{ marginTop: 0, color: '#1e3a8a' }}>Send Password</h3>
                 <p style={{ fontSize: '14px', color: '#666' }}>Enter your registered email:</p>
                 <input 
                   type="email" 

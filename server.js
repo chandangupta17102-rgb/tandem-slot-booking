@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const nodemailer = require('nodemailer'); // Package required for sending emails
 
 const app = express();
 app.use(cors());
@@ -76,7 +75,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// FORGOT PASSWORD ROUTE
+// --- FORGOT PASSWORD ROUTE (Fetches and returns existing password only) ---
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
@@ -87,31 +86,18 @@ app.post('/api/forgot-password', async (req, res) => {
             return res.status(404).json({ message: "This email is not registered!" });
         }
 
-        // Configure Nodemailer transporter with the system email and app password
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, // Port 465 ke liye secure true hona chahiye
-            auth: {
-                user: 'tandem.booking.system@gmail.com', 
-                pass: 'rwdpwpcycnxgczkz'                 
-            }
+        // Return the existing password so the frontend can send it via EmailJS
+        res.json({ 
+            message: "User verified!", 
+            user: { 
+                name: user.name, 
+                password: user.password 
+            } 
         });
-
-        // Set up email data and message content
-        const mailOptions = {
-            from: 'tandem.booking.system@gmail.com', // Sender address
-            to: user.email,
-            subject: 'Tandem Lab - Password Recovery',
-            text: `Hello ${user.name},\n\nWe received a password recovery request for your account.\n\nYour current login password is: ${user.password}\n\nPlease use this password to log into the system. For security reasons, do not share this email with anyone.\n\nRegards,\nTandem Lab Team`
-        };
-
-        await transporter.sendMail(mailOptions);
-        res.json({ message: "Password recovery details have been sent to your email!" });
 
     } catch (err) {
         console.error("Forgot Password Error:", err);
-        res.status(500).json({ message: "Failed to send email", error: err.message });
+        res.status(500).json({ message: "Server Error during password recovery", error: err.message });
     }
 });
 
@@ -131,7 +117,7 @@ app.post('/api/bookings', async (req, res) => {
         const newStart = new Date(start);
         const newEnd = new Date(end);
 
-        // Strict Overlap Check for the selected instrument
+        // Strict Overlap Check for the SAME instrument
         const clash = await Booking.findOne({
             instrument: instrument,
             start: { $lt: newEnd },
@@ -142,7 +128,7 @@ app.post('/api/bookings', async (req, res) => {
             return res.status(400).json({ message: "This slot is already booked for this instrument! Overlaps are not allowed." });
         }
 
-        // Database capacity management (prevents exceeding free tier limits)
+        // Database limit management
         const total = await Booking.countDocuments();
         if (total >= 20000) {
             await Booking.deleteMany({});
@@ -160,7 +146,7 @@ app.post('/api/bookings', async (req, res) => {
     }
 });
 
-// DELETE ROUTE FOR CANCELLATION
+// --- DELETE ROUTE FOR CANCELLATION ---
 app.delete('/api/bookings', async (req, res) => {
     try {
         const { id, userEmail } = req.body;
